@@ -1,0 +1,15 @@
+These will use pt-query-digest to get a list of tables reported in queries from the slow log, and parse the output to get an ordered list of tables used (as schema.table).
+
+
+PATH_TO_SLOW_LOG="/path/to/slow.log"
+GET_ALL_QUERIES="--outliers=Query_time:0:0"
+
+Without backticks surrounding schema and table names:
+
+pt-query-digest $PATH_TO_SLOW_LOG $GET_ALL_QUERIES | awk '/# Tables/,/EXPLAIN/' | grep SHOW | egrep -v "Tables|EXPLAIN|SHOW TABLE STATUS" | sort | uniq | cut -d '`' -f 2-4 | tr -d '`'
+
+
+With backticks surrounding schema and table names:
+
+pt-query-digest $PATH_TO_SLOW_LOG $GET_ALL_QUERIES | awk '/# Tables/,/EXPLAIN/' | grep SHOW | egrep -v "Tables|EXPLAIN|SHOW TABLE STATUS" | sort | uniq | cut -d ' ' -f 8 | sed -r "s/\\\G//"
+
