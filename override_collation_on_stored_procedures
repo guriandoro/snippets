@@ -1,0 +1,75 @@
+DROP DATABASE IF EXISTS test_sp_collation;
+CREATE DATABASE test_sp_collation CHARSET utf8 COLLATE utf8_bin;
+USE test_sp_collation;
+
+DROP TABLE IF EXISTS test_sp_collation_table;
+CREATE TABLE `test_sp_collation_table` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`field_1` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+PRIMARY KEY (`id`),
+KEY `field_1_key` (`field_1`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+INSERT INTO test_sp_collation_table VALUES (1, 'aoeu');
+INSERT INTO test_sp_collation_table VALUES (2, 'HTNS');
+INSERT INTO test_sp_collation_table VALUES (3, 'htns');
+INSERT INTO test_sp_collation_table VALUES (4, 'huTEnoSA');
+
+SELECT * FROM test_sp_collation_table;
+
+
+DROP PROCEDURE IF EXISTS get_from_field_without_collation;
+delimiter //
+CREATE DEFINER=`msandbox`@`localhost` PROCEDURE `get_from_field_without_collation`(IN input VARCHAR(256))
+BEGIN 
+
+SELECT *
+FROM test_sp_collation_table
+WHERE field_1 = input;
+
+END//
+delimiter ;
+
+
+DROP PROCEDURE IF EXISTS get_from_field_with_collation_params;
+delimiter //
+CREATE DEFINER=`msandbox`@`localhost` PROCEDURE `get_from_field_with_collation_params`(IN input VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci)
+BEGIN 
+
+SELECT *
+FROM test_sp_collation_table
+WHERE field_1 = input;
+
+END//
+delimiter ;
+
+
+DROP PROCEDURE IF EXISTS get_from_field_with_collation_query;
+delimiter //
+CREATE DEFINER=`msandbox`@`localhost` PROCEDURE `get_from_field_with_collation_query`(IN input VARCHAR(256))
+BEGIN 
+
+SELECT *
+FROM test_sp_collation_table
+WHERE field_1 = input COLLATE utf8_unicode_ci;
+
+END//
+delimiter ;
+
+SHOW CREATE PROCEDURE test_sp_collation.get_from_field_without_collation\G
+SHOW CREATE PROCEDURE test_sp_collation.get_from_field_with_collation_params\G
+SHOW CREATE PROCEDURE test_sp_collation.get_from_field_with_collation_query\G
+
+
+call get_from_field_without_collation('AOEU');
+call get_from_field_with_collation_params('AOEU');
+call get_from_field_with_collation_query('AOEU');
+
+call get_from_field_without_collation('htns');
+call get_from_field_with_collation_params('htns');
+call get_from_field_with_collation_query('htns');
+
+call get_from_field_without_collation('hutenosa');
+call get_from_field_with_collation_params('hutenosa');
+call get_from_field_with_collation_query('hutenosa');
+
