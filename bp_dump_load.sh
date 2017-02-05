@@ -2,6 +2,15 @@
 
 # To be used with a mysql sandbox (for now).
 
+# Query to check on pages loaded in BP for tables like joinit*
+# SELECT BP.SPACE, T.NAME, count(BP.PAGE_NUMBER)
+# FROM INFORMATION_SCHEMA.INNODB_SYS_TABLES as T
+# JOIN INFORMATION_SCHEMA.INNODB_BUFFER_PAGE as BP
+# USING(SPACE)
+# WHERE T.NAME LIKE 'test/joinit%'
+# GROUP BY BP.SPACE;
+
+
 ./restart
 
 ./use -B -e "show status like 'innodb_buffer%';" > 1_initial_BP_status.out
