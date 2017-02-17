@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# This script can be used to check if the Audit Log plugin is enabled, and if the Audit Log file is
+# being written to.
+# 
+# At least two variables should be checked before running:
+#
+# MYSQL_COMMAND -- should have a valid mysql client connection string.
+# PLUGIN_NAME -- should be the plugin name used upon install. You can check this with `SHOW PLUGINS;`
+#
+# It uses `mail` to send an email to the root account on error, and is intended to be run as a cronjob.
+
+
 MYSQL_COMMAND="mysql -uroot"
 TIMEOUT=1
 OUTPUT_FILE="/tmp/check_mysql_audit_log_status.log"
