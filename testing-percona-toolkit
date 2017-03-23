@@ -1,0 +1,54 @@
+# Steps needed to start the sandboxes, run tests for the percona toolkit, and create a branch in github to make the PR
+
+# Start the sandboxes
+
+# Set environment variables:
+export PERL5LIB=${HOME}/perldev/percona-toolkit/lib
+export PERCONA_TOOLKIT_BRANCH=${HOME}/perldev/percona-toolkit
+
+# Download mysql/percona server tarball and extract:
+cd ${HOME}/mysql/
+wget <link_to_tarball>
+tar xzf <tarball> --strip 1 -C ./percona-server-5.x.y
+
+# Change path as needed for versions:
+export PERCONA_TOOLKIT_SANDBOX=${HOME}/mysql/percona-server-5.x.y
+
+# Start the sandboxes:
+cd ${PERCONA_TOOLKIT_BRANCH}
+sandbox/test-env start
+
+
+# Make changes to files
+
+# For changes done in lib/SchemaIterator.pm
+cd ${PERCONA_TOOLKIT_BRANCH}
+for tool in bin/*; do util/update-modules $tool SchemaIterator; done
+
+# For changes done in lib/bash/collect.sh
+cd ${PERCONA_TOOLKIT_BRANCH}/lib/bash
+util/update-modules bin/pt-stalk collect
+
+# todo: Add more examples as they come
+
+# Run tests:
+cd ${PERCONA_TOOLKIT_BRANCH}
+prove -v t/pt-stalk/
+prove -v t/pt-table-checksum/
+#etc...
+
+
+# Bring changes from percona-toolkit main repo, and merge if needed, and push to your own repo, to create the PR
+
+# Make sure you have committed all the changes:
+git status
+git commit -a
+
+git checkout 3.0
+git pull percona-origin 3.0 --prune
+
+git checkout <your_feature_branch>
+git merge 3.0
+
+# Finally, push your local branch to your github repo so you can create the Pull Request:
+git push origin <your_feature_branch>
