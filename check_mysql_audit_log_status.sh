@@ -11,16 +11,26 @@
 # It uses `mail` to send an email to the root account on error, and is intended to be run as a cronjob.
 
 
-MYSQL_COMMAND="mysql -uroot"
-TIMEOUT=1
+MYSQL_COMMAND="mysql -u root"
+TIMEOUT=5
 OUTPUT_FILE="/tmp/check_mysql_audit_log_status.log"
 PLUGIN_NAME="audit_log"
+RECIPENT="hsan@cpg.org,jgallo@cpg.org"
+HOSTNAME=`/bin/hostname -s`
+
+# Check that notification haven't been sent
+HAVE_WARNING=`tail -1 ${OUTPUT_FILE} | grep -i WARNING`
+if [[ $HAVE_WARNING == *"WARNING"* ]]; then
+ SEND_EMAIL=false
+else
+ SEND_EMAIL=true
+fi
 
 # Date in unix timestamp format, so we can check if the audit log file was modified after querying mysql.
 DATE_UNIX_TIMESTAMP=`date +%s`
 
 # The audit-log-file mysql variable needs to include full path, if not, one should modify the code to
-# prepend the datadir path.
+# prepend the datadir path
 AUDIT_LOG_FILE=`${MYSQL_COMMAND} -Bse "SELECT @@global.audit_log_file" 2>/dev/null`
 
 # This command should return "ACTIVE" if the audit log plugin is enabled.
@@ -36,9 +46,9 @@ sleep ${TIMEOUT}
 date >> ${OUTPUT_FILE}
 
 # Check if the Audit Log plugin is enabled.
-if [ "${AUDIT_LOG_PLUGIN_STATUS}" != "ACTIVE" ]; then
-  MAIL_BODY="ERROR! The MySQL Audit Log is not enabled."
-  echo ${MAIL_BODY} | mail -s "[ERROR] MySQL Audit Log." root@localhost
+if [[ "${AUDIT_LOG_PLUGIN_STATUS}" != "ACTIVE" && "${SEND_EMAIL}" == "true" ]]; then
+  MAIL_BODY="WARNING. The MySQL Audit Log is not enable on ${HOSTNAME}."
+  echo ${MAIL_BODY} | mail -s "[ERROR] MySQL Audit Log." ${RECIPENT}
   echo ${MAIL_BODY} >> ${OUTPUT_FILE}
   exit 1
 else 
@@ -46,9 +56,9 @@ else
 fi
 
 # Check if the Audit Log file exists.
-if [ ! -f ${AUDIT_LOG_FILE} ]; then
-  MAIL_BODY="WARNING. It seems the MySQL Audit Log file does not exist."
-  echo ${MAIL_BODY} | mail -s "[WARNING] MySQL Audit Log." root@localhost
+if [[ ! -f ${AUDIT_LOG_FILE}  && "${SEND_EMAIL}" == "true" ]]; then
+  MAIL_BODY="WARNING. It seems the MySQL Audit Log file does not exist on ${HOSTNAME}."
+  echo ${MAIL_BODY} | mail -s "[WARNING] MySQL Audit Log." ${RECIPENT}
   echo ${MAIL_BODY} >> ${OUTPUT_FILE}
   exit 1
 fi
@@ -57,9 +67,9 @@ DATE_AUDIT_LOG_FILE=`stat ${AUDIT_LOG_FILE} | grep Modify | awk {'print $2 " " $
 DATE_AUDIT_LOG_FILE_UNIX_TIMESTAMP=`date --date"=${DATE_AUDIT_LOG_FILE}" +%s`
 
 # Check if the Audit Log file has been written to since we started.
-if [ "${DATE_AUDIT_LOG_FILE_UNIX_TIMESTAMP}" -lt "${DATE_UNIX_TIMESTAMP}" ]; then
-  MAIL_BODY="WARNING. It seems the MySQL Audit Log file is not being written to."
-  echo ${MAIL_BODY} | mail -s "[WARNING] MySQL Audit Log." root@localhost
+if [[ "${DATE_AUDIT_LOG_FILE_UNIX_TIMESTAMP}" -lt "${DATE_UNIX_TIMESTAMP}" && "${SEND_EMAIL}" == "true" ]]; then
+  MAIL_BODY="WARNING. It seems the MySQL Audit Log file is not being written to on ${HOSTNAME}."
+  echo ${MAIL_BODY} | mail -s "[WARNING] MySQL Audit Log." ${RECIPENT}
   echo ${MAIL_BODY} >> ${OUTPUT_FILE}
   exit 1
 else
