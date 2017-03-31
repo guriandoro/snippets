@@ -20,6 +20,11 @@ make_sandbox --add_prefix=rm_3_ /opt/percona_server/5.7.17  -- --sandbox_port=12
 make_sandbox --add_prefix=rm_4_ /opt/percona_server/5.7.17  -- --sandbox_port=12443 \
   --no_show --no_run
 
+# start a server with temporary options
+cd ~/sandboxes/msb_rm_4_5_7_17
+./start --innodb-file-per-table=0 --innodb-file-format='Antelope'
+./restart --innodb-file-per-table=0 --innodb-file-format='Barracuda'
+
 # add variables to be used on the my.sandbox.cnf file
 make_sandbox --add_prefix=rm_5_ /opt/percona_server/5.7.17  -- --sandbox_port=12444 \
   --no_show \
