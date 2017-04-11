@@ -26,7 +26,7 @@ cd ${PERCONA_TOOLKIT_BRANCH}
 for tool in bin/*; do util/update-modules $tool SchemaIterator; done
 
 # For changes done in lib/bash/collect.sh
-cd ${PERCONA_TOOLKIT_BRANCH}/lib/bash
+cd ${PERCONA_TOOLKIT_BRANCH}
 util/update-modules bin/pt-stalk collect
 
 # todo: Add more examples as they come
