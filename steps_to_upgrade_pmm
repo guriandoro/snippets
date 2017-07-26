@@ -1,0 +1,54 @@
+yum -y install http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+
+yum -y install docker
+
+service docker start
+
+docker create \
+   -v /opt/prometheus/data \
+   -v /opt/consul-data \
+   -v /var/lib/mysql \
+   -v /var/lib/grafana \
+   --name pmm-data \
+   percona/pmm-server:1.1.1 /bin/true
+
+docker run -d \
+   -p 80:80 \
+   --volumes-from pmm-data \
+   --name pmm-server \
+   --restart always \
+   percona/pmm-server:1.1.1
+
+
+yum -y install https://www.percona.com/downloads/pmm-client/pmm-client-1.1.1/binary/redhat/6/x86_64/pmm-client-1.1.1-1.x86_64.rpm
+
+yum -y install Percona-Server-server-57
+
+service mysql start
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'A12345aaaaaeu!';
+
+pmm-admin config --server 192.168.24.200
+
+pmm-admin add mysql
+
+-- ssh tunnel from vagrant to highram
+ssh -L 12380:localhost:80 vagrant@192.168.24.200
+
+-- ssh tunnel from highram to my local machine
+ssh -L 8889:localhost:12380 highram
+
+
+#upgrade PMM
+
+docker stop pmm-server && docker rm pmm-server 
+
+docker run -d \
+   -p 80:80 \
+   --volumes-from pmm-data \
+   --name pmm-server \
+   --restart always \
+   percona/pmm-server:1.2.0
+
+yum update pmm-client
+
