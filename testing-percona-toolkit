@@ -40,6 +40,12 @@ prove -v t/pt-table-checksum/
 
 # Bring changes from percona-toolkit main repo, and merge if needed, and push to your own repo, to create the PR
 
+# Check if remote repo is added:
+git remote -v
+
+# Add remote repo, if not there:
+git remote add percona-origin https://github.com/percona/percona-toolkit
+
 # Make sure you have committed all the changes:
 git status
 git commit -a
