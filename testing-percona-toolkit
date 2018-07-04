@@ -37,6 +37,8 @@ prove -v t/pt-stalk/
 prove -v t/pt-table-checksum/
 #etc...
 
+# For tools that are in Go:
+go test -v -coverprofile=coverage.out
 
 # Bring changes from percona-toolkit main repo, and merge if needed, and push to your own repo, to create the PR
 
