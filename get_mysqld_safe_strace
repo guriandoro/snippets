@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The idea of this script is to be run in a separate tab, waiting for `systemctl start mysqld` or
+# similar to be run. At that point, it will attach strace to the running mysqld_safe PID, and 
+# collect output on it and its children. One needs to manually kill it when collection is wanted
+# to be stopped (via CTRL-C).
+
+# TODO: further checks on files and PIDs used
+
+if [ -f /tmp/mysqld.start.strace ]; then
+  echo 'Warning! /tmp/mysqld.start.strace found. Please move it to some other location or remove it.'
+  exit 1;
+fi;
+
+STRACE_COLLECTED=0;
+
+while [ $STRACE_COLLECTED -eq 0 ]; do
+  MYSQLD_SAFE_PID=$(pgrep mysqld_safe)
+  if [ ! -z "${MYSQLD_SAFE_PID}" ]; then
+    echo "CALLING STRACE ON PID $MYSQLD_SAFE_PID";
+    strace -f -s8192 -ttt -o/tmp/mysqld.start.strace -p $MYSQLD_SAFE_PID 2>/dev/null;
+    if [ -f /tmp/mysqld.start.strace ]; then
+      echo " STRACE FILE FOUND. EXITING";
+      STRACE_COLLECTED=1;
+    fi;
+  fi;
+done;
+echo "EXIT";
+
+exit 0;
