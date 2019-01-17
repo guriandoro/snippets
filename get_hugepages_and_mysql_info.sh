@@ -1,11 +1,16 @@
 #!/bin/bash
-# This script will gather data on HugePages and MySQL (InnoDB buffer pool)
 
+echo "###############################"
+numastat -cm | egrep 'Node|Huge' | grep -v "Token"
+echo "###############################"
+echo
 
 echo "###############################"
 cat /proc/meminfo | egrep -i "page|huge"
 echo "###############################"
 echo
+
+echo "###############################"
 mysql -Be "SELECT round(@@global.innodb_buffer_pool_size/1024/1024) AS InnoDB_BP_size"
 mysql -Be "SELECT @@global.innodb_buffer_pool_instances AS InnoDB_BP_instances"
 mysql -Be "SELECT round(@@global.innodb_buffer_pool_chunk_size/1024/1024) AS InnoDB_BP_chunk_size"
@@ -22,5 +27,3 @@ echo -e "page size:\t$HP_SIZE"
 echo
 echo -e "HP pool size:\t$((($HP_TOTAL)*$HP_SIZE/1024)) Mb"
 echo -e "committed:\t$((($HP_TOTAL-$HP_FREE+$HP_RSVD)*$HP_SIZE/1024)) Mb"
-
-exit 0
