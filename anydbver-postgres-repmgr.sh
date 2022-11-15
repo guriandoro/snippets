@@ -29,7 +29,7 @@ EOF
 # sudo -u postgres pgbackrest info --log-level-console=info
 # sudo -u postgres pgbackrest restore --stanza=pg0app --log-level-console=info
 
-chown postgres:postgres /nfs/pgbackups/pgbackrest
+#chown postgres:postgres /nfs/pgbackups/pgbackrest
 #rm -rf /nfs/pgbackups/pgbackrest*
 sudo -u postgres pgbackrest stanza-create --stanza=pg0app --log-level-console=info
 sudo -u postgres pgbackrest backup --stanza=pg0app --log-level-console=info
@@ -61,6 +61,8 @@ EOF
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf primary register
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf cluster show
 
+exit
+
 #### SETUP FIRST REPLICA NODE
 #############################
 
@@ -90,6 +92,8 @@ tail /var/lib/pgsql/13/data/log/postgresql-*.log
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf standby register
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf cluster show
 
+exit
+
 #### SETUP SECOND REPLICA NODE
 ##############################
 
@@ -105,7 +109,7 @@ pg1-port=5432
 EOF
 
 cat <<EOF >>/etc/repmgr/13/repmgr.conf
-node_id=2
+node_id=3
 node_name='pg2'
 conninfo='host=postgres2 user=repmgr dbname=repmgr password=secret connect_timeout=2'
 data_directory='/var/lib/pgsql/13/data'
@@ -118,3 +122,5 @@ systemctl start postgresql-13.service
 tail /var/lib/pgsql/13/data/log/postgresql-*.log
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf standby register
 sudo -u postgres /usr/pgsql-13/bin/repmgr -f /etc/repmgr/13/repmgr.conf cluster show
+
+exit
